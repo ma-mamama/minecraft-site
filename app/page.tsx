@@ -14,7 +14,7 @@ export default function LoginPage() {
 
     // LINE認証のパラメータを構築
     const lineChannelId = process.env.NEXT_PUBLIC_LINE_CHANNEL_ID;
-    const callbackUrl = process.env.NEXT_PUBLIC_LINE_CALLBACK_URL || `${window.location.origin}/api/auth/line/callback`;
+    const callbackUrl = process.env.NEXT_PUBLIC_LINE_CALLBACK_URL || `${window.location.origin}/auth/callback`;
     const state = Math.random().toString(36).substring(7);
     const nonce = Math.random().toString(36).substring(7);
 
