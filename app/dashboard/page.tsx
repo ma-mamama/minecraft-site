@@ -659,10 +659,24 @@ export default function DashboardPage() {
 
         {/* Server Status */}
         <div className="gaming-card rounded-2xl p-6 mb-6 transition-all duration-300">
-          <h2 className="text-2xl font-bold mb-6 text-[#00d4ff] flex items-center space-x-2">
-            <span>📊</span>
-            <span>サーバーステータス</span>
-          </h2>
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-2xl font-bold text-[#00d4ff] flex items-center space-x-2">
+              <span>📊</span>
+              <span>サーバーステータス</span>
+            </h2>
+            <button
+              onClick={fetchServerStatus}
+              disabled={isStatusLoading}
+              className={`gaming-button py-2 px-4 rounded-lg font-semibold transition-all duration-300 flex items-center space-x-2 ${
+                isStatusLoading
+                  ? 'bg-gray-700 text-gray-500 cursor-not-allowed'
+                  : 'bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-blue-500 hover:to-cyan-500 text-white shadow-lg hover:shadow-[0_0_20px_rgba(6,182,212,0.5)] transform hover:scale-105 active:scale-95'
+              }`}
+            >
+              <span className={isStatusLoading ? 'animate-spin' : ''}>🔄</span>
+              <span>{isStatusLoading ? '更新中...' : 'リロード'}</span>
+            </button>
+          </div>
           <ServerStatusDisplay
             ec2State={serverState}
             minecraftState={minecraftState}
