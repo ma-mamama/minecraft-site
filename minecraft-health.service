@@ -1,0 +1,28 @@
+[Unit]
+Description=Minecraft Server Health Check Service
+After=network.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=ubuntu
+WorkingDirectory=/home/ubuntu
+ExecStart=/usr/bin/python3.12 /home/ubuntu/minecraft-health-server.py
+Restart=always
+RestartSec=10
+
+# 環境変数の設定
+Environment="HEALTH_CHECK_PORT=8080"
+Environment="MINECRAFT_PROCESS_NAME=bedrock_server"
+
+# セキュリティ設定
+NoNewPrivileges=true
+PrivateTmp=true
+
+# ログ設定
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=minecraft-health
+
+[Install]
+WantedBy=multi-user.target
