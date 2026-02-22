@@ -23,12 +23,24 @@ from typing import Optional
 # 設定
 PORT = int(os.environ.get('HEALTH_CHECK_PORT', '8080'))
 MINECRAFT_PROCESS_NAME = os.environ.get('MINECRAFT_PROCESS_NAME', 'bedrock_server')
+HEALTH_CHECK_TOKEN = os.environ.get('HEALTH_CHECK_TOKEN', '')  # 空の場合は認証なし
 
 class HealthCheckHandler(http.server.BaseHTTPRequestHandler):
     """ヘルスチェックリクエストを処理するハンドラー"""
     
     def do_GET(self):
         """GETリクエストの処理"""
+        # 認証チェック（トークンが設定されている場合のみ）
+        if HEALTH_CHECK_TOKEN:
+            auth_header = self.headers.get('Authorization', '')
+            expected_auth = f'Bearer {HEALTH_CHECK_TOKEN}'
+            if auth_header != expected_auth:
+                self.send_response(401)
+                self.send_header('Content-Type', 'application/json')
+                self.end_headers()
+                self.wfile.write(b'{"status":"error","message":"Unauthorized"}')
+                return
+        
         if self.path == '/health':
             if self.is_minecraft_running():
                 self.send_response(200)

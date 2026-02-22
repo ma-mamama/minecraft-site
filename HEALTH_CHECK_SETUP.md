@@ -81,11 +81,43 @@ AWS EC2コンソールで、インスタンスのセキュリティグループ�
 
 ```bash
 MINECRAFT_HEALTH_CHECK_URL=http://YOUR_EC2_HOST:8080/health
+
+# セキュリティトークン（推奨）
+# ランダムな文字列を生成: openssl rand -hex 32
+HEALTH_CHECK_TOKEN=your_random_secure_token_here
 ```
 
 例:
 ```bash
 MINECRAFT_HEALTH_CHECK_URL=http://ec2-34-212-65-131.us-west-2.compute.amazonaws.com:8080/health
+HEALTH_CHECK_TOKEN=a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6
+```
+
+### 8. EC2側でトークンを設定
+
+`/etc/systemd/system/minecraft-health.service`を編集してトークンを追加：
+
+```ini
+[Service]
+Type=simple
+User=ubuntu
+WorkingDirectory=/home/ubuntu
+ExecStart=/usr/bin/python3 /home/ubuntu/minecraft-health-server.py
+Restart=always
+RestartSec=10
+Environment="HEALTH_CHECK_PORT=8080"
+Environment="MINECRAFT_PROCESS_NAME=bedrock_server"
+Environment="HEALTH_CHECK_TOKEN=your_random_secure_token_here"
+
+[Install]
+WantedBy=multi-user.target
+```
+
+変更後、サービスを再起動：
+
+```bash
+sudo systemctl daemon-reload
+sudo systemctl restart minecraft-health.service
 ```
 
 ## カスタマイズ
@@ -164,15 +196,24 @@ sudo journalctl -u minecraft-health.service -f
 ## セキュリティ考慮事項
 
 1. **ポート8080を外部に公開する場合**
-   - 必要最小限のIPアドレスのみ許可する
-   - 認証機能の追加を検討する
+   - セキュリティグループで`0.0.0.0/0`を許可する場合は、必ず`HEALTH_CHECK_TOKEN`を設定してください
+   - トークンなしで公開すると、誰でもサーバーの起動状態を確認できます
+   - トークンは32文字以上のランダムな文字列を使用してください
 
-2. **本番環境では**
+2. **トークンの生成方法**
+   ```bash
+   # ランダムなトークンを生成
+   openssl rand -hex 32
+   ```
+
+3. **本番環境では**
    - VPC内部通信のみに制限することを推奨
    - ALB/NLBを経由したヘルスチェックを検討
+   - トークンは環境変数で管理し、コードにハードコードしない
 
-3. **ログ監視**
+4. **ログ監視**
    - 定期的にログを確認し、異常なアクセスがないか監視
+   - 401エラーが頻発する場合は不正アクセスの可能性
 
 ## 動作確認
 

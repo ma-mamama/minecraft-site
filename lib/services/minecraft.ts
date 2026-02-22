@@ -135,8 +135,16 @@ async function checkHttpHealth(url: string, timeoutMs: number): Promise<boolean>
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
+    // Add Authorization header if token is configured
+    const headers: HeadersInit = {};
+    const healthCheckToken = process.env.HEALTH_CHECK_TOKEN;
+    if (healthCheckToken) {
+      headers['Authorization'] = `Bearer ${healthCheckToken}`;
+    }
+
     const response = await fetch(url, {
       method: 'GET',
+      headers,
       signal: controller.signal,
     });
 
