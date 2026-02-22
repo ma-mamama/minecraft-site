@@ -28,7 +28,9 @@ A web application for controlling a Minecraft server running on AWS EC2 with LIN
 - Supabase account
 - AWS account with EC2 instance
 
-### Installation
+詳細なローカル開発環境のセットアップ手順は [docs/LOCAL_DEVELOPMENT.md](docs/LOCAL_DEVELOPMENT.md) を参照してください。
+
+### Quick Start
 
 1. Clone the repository
 2. Install dependencies:
@@ -37,19 +39,64 @@ A web application for controlling a Minecraft server running on AWS EC2 with LIN
 npm install
 ```
 
-3. Copy `.env.example` to `.env` and fill in your credentials:
+3. ローカル開発用の環境変数を設定：
 
 ```bash
+# ローカル開発用（開発モード有効）
+cp .env.local.example .env.local
+
+# または本番環境と同じ設定でテスト
 cp .env.example .env
 ```
 
-4. Run the development server:
+4. `.env.local`または`.env`ファイルに必要な認証情報を入力
+
+5. 開発サーバーを起動：
 
 ```bash
 npm run dev
 ```
 
-5. Open [http://localhost:3000](http://localhost:3000) in your browser
+6. ブラウザで [http://localhost:3000](http://localhost:3000) を開く
+
+### 開発モード（ローカルテスト用）
+
+ローカル環境でLINE認証とSupabaseなしでテストする場合は、`.env.local`ファイルを使用します：
+
+**セットアップ手順:**
+
+1. `.env.local.example`を`.env.local`にコピー（既に存在する場合はスキップ）：
+```bash
+cp .env.local.example .env.local
+```
+
+2. `.env.local`で開発モードを有効化（デフォルトで有効）：
+```bash
+DEV_MODE_SKIP_AUTH=true
+```
+
+3. 開発サーバーを起動：
+```bash
+npm run dev
+```
+
+4. ログインページに「🔧 開発モードでログイン」ボタンが表示されます
+
+**開発モードの特徴:**
+- LINE認証が不要（認証をスキップ）
+- Supabase設定が不要（インメモリストレージを使用）
+- データベース接続不要（すべてメモリ内で管理）
+- サーバー再起動でデータはリセットされます
+
+**環境ファイルの優先順位:**
+- `.env.local` > `.env` の順で読み込まれます
+- `.env.local`はGitにコミットされないため、個人の開発環境設定に最適です
+- `.env`は本番環境の設定テンプレートとして使用できます
+
+**⚠️ セキュリティ上の注意:**
+- 開発モードは`NODE_ENV=production`では**絶対に**有効になりません
+- `.env.local`はGitにコミットされません（`.gitignore`で除外済み）
+- 本番環境では`DEV_MODE_SKIP_AUTH`を設定しないか、`false`に設定してください
 
 ## Environment Variables
 

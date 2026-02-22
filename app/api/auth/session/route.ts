@@ -13,13 +13,19 @@ import { cookies } from 'next/headers';
  * Validate current session and return user information
  */
 export async function GET(request: NextRequest) {
+  console.log('[SESSION-API] GET request received');
+  
   try {
     // Get session ID from cookie
     const cookieStore = await cookies();
     const sessionCookie = cookieStore.get('session');
+    
+    console.log('[SESSION-API] Session cookie:', sessionCookie ? 'found' : 'not found');
+    console.log('[SESSION-API] All cookies:', cookieStore.getAll().map(c => c.name));
 
     if (!sessionCookie) {
       // Requirement 7.1: No session cookie, return 401
+      console.log('[SESSION-API] No session cookie, returning 401');
       return NextResponse.json(
         {
           error: {
@@ -32,12 +38,15 @@ export async function GET(request: NextRequest) {
     }
 
     const sessionId = sessionCookie.value;
+    console.log('[SESSION-API] Session ID:', sessionId);
 
     // Validate session and get user
     const user = await validateSession(sessionId);
+    console.log('[SESSION-API] User from validateSession:', user ? 'found' : 'not found');
 
     if (!user) {
       // Session invalid or expired
+      console.log('[SESSION-API] Session invalid or expired, returning 401');
       return NextResponse.json(
         {
           error: {
@@ -49,6 +58,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    console.log('[SESSION-API] Session valid, returning user data');
     // Return user information
     return NextResponse.json(
       {
@@ -63,7 +73,7 @@ export async function GET(request: NextRequest) {
       { status: 200 }
     );
   } catch (error) {
-    console.error('Unexpected error in session validation:', error);
+    console.error('[SESSION-API] Unexpected error:', error);
     return NextResponse.json(
       {
         error: {

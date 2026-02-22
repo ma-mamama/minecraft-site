@@ -127,6 +127,22 @@ export async function verifyLineToken(idToken: string): Promise<LineUser> {
  * @returns true if whitelisted, false otherwise
  */
 export async function isWhitelisted(lineSub: string): Promise<boolean> {
+  // 開発モードの場合はモックストレージを使用
+  if (isDevModeEnabled()) {
+    const mockStorage = await import('./mock-storage');
+    const user = mockStorage.getUserByLineSub(lineSub);
+    const result = !!user;
+
+    if (result) {
+      logInfo('User whitelist check passed (dev mode)', { lineSub });
+    } else {
+      logInfo('User not in whitelist (dev mode)', { lineSub });
+    }
+
+    return result;
+  }
+
+  // 本番モードの場合はSupabaseを使用
   try {
     const { data, error } = await supabaseServer
       .from('users')
@@ -161,6 +177,26 @@ export async function isWhitelisted(lineSub: string): Promise<boolean> {
  * @throws Error if user not found or session creation fails
  */
 export async function createSession(lineSub: string): Promise<Session> {
+  // 開発モードの場合はモックストレージを使用
+  if (isDevModeEnabled()) {
+    const mockStorage = await import('./mock-storage');
+
+    let user = mockStorage.getUserByLineSub(lineSub);
+    if (!user) {
+      user = mockStorage.createUser(lineSub, 'Development User');
+    }
+
+    mockStorage.updateUserLastLogin(user.id);
+
+    const expiryDays = parseInt(process.env.SESSION_EXPIRY_DAYS || '7', 10);
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + expiryDays);
+
+    const sessionRow = mockStorage.createSession(user.id, expiresAt);
+    return rowToSession(sessionRow);
+  }
+
+  // 本番モードの場合はSupabaseを使用
   try {
     // Get user by LINE_Sub
     const { data: userData, error: userError } = await supabaseServer
@@ -215,6 +251,35 @@ export async function createSession(lineSub: string): Promise<Session> {
  * @returns User object if session is valid, null otherwise
  */
 export async function validateSession(sessionId: string): Promise<User | null> {
+  // 開発モードの場合はモックストレージを使用
+  if (isDevModeEnabled()) {
+    const mockStorage = await import('./mock-storage');
+
+    const sessionData = mockStorage.getSessionById(sessionId);
+    if (!sessionData) {
+      return null;
+    }
+
+    // セッションの有効期限をチェック
+    const expiresAt = new Date(sessionData.expires_at);
+    if (expiresAt < new Date()) {
+      mockStorage.deleteSession(sessionId);
+      return null;
+    }
+
+    // 最終アクセス時刻を更新
+    mockStorage.updateSessionLastAccessed(sessionId);
+
+    // ユーザー情報を取得
+    const user = mockStorage.getUserById(sessionData.user_id);
+    if (!user) {
+      return null;
+    }
+
+    return rowToUser(user);
+  }
+
+  // 本番モードの場合はSupabaseを使用
   try {
     // Get session with user data
     const { data: sessionData, error: sessionError } = await supabaseServer
@@ -259,6 +324,14 @@ export async function validateSession(sessionId: string): Promise<User | null> {
  * @param sessionId - The session ID to invalidate
  */
 export async function invalidateSession(sessionId: string): Promise<void> {
+  // 開発モードの場合はモックストレージを使用
+  if (isDevModeEnabled()) {
+    const mockStorage = await import('./mock-storage');
+    mockStorage.deleteSession(sessionId);
+    return;
+  }
+
+  // 本番モードの場合はSupabaseを使用
   try {
     await supabaseServer
       .from('sessions')
@@ -302,6 +375,14 @@ export async function createUser(
   lineSub: string,
   displayName?: string
 ): Promise<User> {
+  // 開発モードの場合はモックストレージを使用
+  if (isDevModeEnabled()) {
+    const mockStorage = await import('./mock-storage');
+    const userRow = mockStorage.createUser(lineSub, displayName);
+    return rowToUser(userRow);
+  }
+
+  // 本番モードの場合はSupabaseを使用
   try {
     const userInsert: UserInsert = {
       line_sub: lineSub,
@@ -323,4 +404,66 @@ export async function createUser(
     console.error('Error creating user:', error);
     throw error;
   }
+}
+/**
+ * Check if development mode authentication skip is enabled
+ * WARNING: This should NEVER be enabled in production
+ *
+ * @returns true if dev mode is enabled and NODE_ENV is not production
+ */
+export function isDevModeEnabled(): boolean {
+  // Always return false in production, regardless of env var
+  if (process.env.NODE_ENV === 'production') {
+    return false;
+  }
+
+  return process.env.DEV_MODE_SKIP_AUTH === 'true';
+}
+
+/**
+ * Get or create a test user for development mode
+ * This bypasses LINE authentication for local development
+ *
+ * @returns User object for the test user
+ * @throws Error if dev mode is not enabled or user creation fails
+ */
+export async function getOrCreateDevUser(): Promise<User> {
+  if (!isDevModeEnabled()) {
+    throw new Error('Development mode is not enabled');
+  }
+
+  const testLineSub = process.env.DEV_MODE_TEST_USER_LINE_SUB || 'dev_test_user_12345';
+
+  const mockStorage = await import('./mock-storage');
+
+  // モックストレージからユーザーを取得
+  let user = mockStorage.getUserByLineSub(testLineSub);
+
+  if (user) {
+    logInfo('Using existing dev mode test user', { lineSub: testLineSub });
+    return rowToUser(user);
+  }
+
+  // ユーザーが存在しない場合は作成
+  logInfo('Creating dev mode test user', { lineSub: testLineSub });
+  user = mockStorage.createUser(testLineSub, 'Development Test User');
+  return rowToUser(user);
+}
+
+/**
+ * Create a session for development mode (bypasses LINE authentication)
+ * WARNING: Only works when DEV_MODE_SKIP_AUTH=true and NODE_ENV !== production
+ *
+ * @returns Session object for the test user
+ * @throws Error if dev mode is not enabled
+ */
+export async function createDevSession(): Promise<Session> {
+  if (!isDevModeEnabled()) {
+    throw new Error('Development mode is not enabled');
+  }
+
+  const testUser = await getOrCreateDevUser();
+  logInfo('Creating dev mode session', { userId: testUser.id });
+
+  return await createSession(testUser.line_sub);
 }

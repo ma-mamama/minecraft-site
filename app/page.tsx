@@ -1,12 +1,21 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 export default function LoginPage() {
   const [invitationCode, setInvitationCode] = useState('');
   const [isNewUser, setIsNewUser] = useState(false);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isDevMode, setIsDevMode] = useState(false);
+
+  // Check if dev mode is available on mount
+  useEffect(() => {
+    fetch('/api/auth/dev-mode-check')
+      .then(res => res.json())
+      .then(data => setIsDevMode(data.enabled))
+      .catch(() => setIsDevMode(false));
+  }, []);
 
   const handleLineLogin = () => {
     setError('');
@@ -39,6 +48,39 @@ export default function LoginPage() {
     authUrl.searchParams.set('nonce', nonce);
 
     window.location.href = authUrl.toString();
+  };
+
+  const handleDevLogin = async () => {
+    console.log('[FRONTEND] Dev login button clicked');
+    setError('');
+    setIsLoading(true);
+
+    try {
+      console.log('[FRONTEND] Sending POST to /api/auth/dev-login');
+      const response = await fetch('/api/auth/dev-login', {
+        method: 'POST',
+      });
+
+      console.log('[FRONTEND] Response status:', response.status);
+      console.log('[FRONTEND] Response ok:', response.ok);
+
+      if (!response.ok) {
+        const data = await response.json();
+        console.error('[FRONTEND] Login failed:', data);
+        throw new Error(data.error || 'ログインに失敗しました');
+      }
+
+      const data = await response.json();
+      console.log('[FRONTEND] Login successful:', data);
+      console.log('[FRONTEND] Redirecting to /dashboard');
+      
+      // Redirect to dashboard
+      window.location.href = '/dashboard';
+    } catch (err) {
+      console.error('[FRONTEND] Error during dev login:', err);
+      setError(err instanceof Error ? err.message : 'ログインに失敗しました');
+      setIsLoading(false);
+    }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -141,6 +183,27 @@ export default function LoginPage() {
                 </>
               )}
             </button>
+
+            {isDevMode && (
+              <button
+                type="button"
+                onClick={handleDevLogin}
+                disabled={isLoading}
+                className="gaming-button w-full bg-gradient-to-r from-[#ff9500] to-[#ff5500] hover:from-[#ff5500] hover:to-[#ff9500] disabled:from-gray-600 disabled:to-gray-700 text-white disabled:text-gray-400 font-bold py-4 px-6 rounded-lg transition-all duration-300 flex items-center justify-center space-x-3 shadow-lg hover:shadow-[0_0_30px_rgba(255,149,0,0.5)] disabled:shadow-none transform hover:scale-105 active:scale-95"
+              >
+                {isLoading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></div>
+                    <span>処理中...</span>
+                  </>
+                ) : (
+                  <>
+                    <span className="text-2xl">🔧</span>
+                    <span className="text-lg">開発モードでログイン</span>
+                  </>
+                )}
+              </button>
+            )}
           </form>
 
           <div className="mt-6 p-4 bg-white bg-opacity-5 rounded-lg border border-white border-opacity-10">
