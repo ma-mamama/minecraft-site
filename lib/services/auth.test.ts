@@ -338,3 +338,104 @@ describe('Authentication Service - Property-Based Tests', () => {
     );
   });
 });
+
+// Development Mode Tests
+describe('Development Mode Functions', () => {
+  test('isDevModeEnabled: 本番環境では常にfalseを返す', () => {
+    const originalEnv = process.env.NODE_ENV;
+    const originalDevMode = process.env.DEV_MODE_SKIP_AUTH;
+
+    try {
+      process.env.NODE_ENV = 'production';
+      process.env.DEV_MODE_SKIP_AUTH = 'true';
+
+      const { isDevModeEnabled } = require('./auth');
+      expect(isDevModeEnabled()).toBe(false);
+    } finally {
+      process.env.NODE_ENV = originalEnv;
+      process.env.DEV_MODE_SKIP_AUTH = originalDevMode;
+    }
+  });
+
+  test('isDevModeEnabled: 開発環境でDEV_MODE_SKIP_AUTH=trueの場合はtrueを返す', () => {
+    const originalEnv = process.env.NODE_ENV;
+    const originalDevMode = process.env.DEV_MODE_SKIP_AUTH;
+
+    try {
+      process.env.NODE_ENV = 'development';
+      process.env.DEV_MODE_SKIP_AUTH = 'true';
+
+      // モジュールキャッシュをクリアして再読み込み
+      vi.resetModules();
+      const { isDevModeEnabled } = require('./auth');
+      expect(isDevModeEnabled()).toBe(true);
+    } finally {
+      process.env.NODE_ENV = originalEnv;
+      process.env.DEV_MODE_SKIP_AUTH = originalDevMode;
+      vi.resetModules();
+    }
+  });
+
+  test('isDevModeEnabled: DEV_MODE_SKIP_AUTHが未設定またはfalseの場合はfalseを返す', () => {
+    const originalEnv = process.env.NODE_ENV;
+    const originalDevMode = process.env.DEV_MODE_SKIP_AUTH;
+
+    try {
+      process.env.NODE_ENV = 'development';
+      
+      // 未設定の場合
+      delete process.env.DEV_MODE_SKIP_AUTH;
+      vi.resetModules();
+      let { isDevModeEnabled } = require('./auth');
+      expect(isDevModeEnabled()).toBe(false);
+
+      // falseの場合
+      process.env.DEV_MODE_SKIP_AUTH = 'false';
+      vi.resetModules();
+      ({ isDevModeEnabled } = require('./auth'));
+      expect(isDevModeEnabled()).toBe(false);
+    } finally {
+      process.env.NODE_ENV = originalEnv;
+      process.env.DEV_MODE_SKIP_AUTH = originalDevMode;
+      vi.resetModules();
+    }
+  });
+
+  test('getOrCreateDevUser: 開発モードが無効の場合はエラーをスローする', async () => {
+    const originalEnv = process.env.NODE_ENV;
+    const originalDevMode = process.env.DEV_MODE_SKIP_AUTH;
+
+    try {
+      process.env.NODE_ENV = 'production';
+      process.env.DEV_MODE_SKIP_AUTH = 'false';
+
+      vi.resetModules();
+      const { getOrCreateDevUser } = require('./auth');
+      
+      await expect(getOrCreateDevUser()).rejects.toThrow('Development mode is not enabled');
+    } finally {
+      process.env.NODE_ENV = originalEnv;
+      process.env.DEV_MODE_SKIP_AUTH = originalDevMode;
+      vi.resetModules();
+    }
+  });
+
+  test('createDevSession: 開発モードが無効の場合はエラーをスローする', async () => {
+    const originalEnv = process.env.NODE_ENV;
+    const originalDevMode = process.env.DEV_MODE_SKIP_AUTH;
+
+    try {
+      process.env.NODE_ENV = 'production';
+      process.env.DEV_MODE_SKIP_AUTH = 'false';
+
+      vi.resetModules();
+      const { createDevSession } = require('./auth');
+      
+      await expect(createDevSession()).rejects.toThrow('Development mode is not enabled');
+    } finally {
+      process.env.NODE_ENV = originalEnv;
+      process.env.DEV_MODE_SKIP_AUTH = originalDevMode;
+      vi.resetModules();
+    }
+  });
+});
