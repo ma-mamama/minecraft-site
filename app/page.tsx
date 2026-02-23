@@ -9,7 +9,6 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [isDevMode, setIsDevMode] = useState(false);
 
-  // Check if dev mode is available on mount
   useEffect(() => {
     fetch('/api/auth/dev-mode-check')
       .then(res => res.json())
@@ -21,24 +20,20 @@ export default function LoginPage() {
     setError('');
     setIsLoading(true);
 
-    // LINE認証のパラメータを構築
     const lineChannelId = process.env.NEXT_PUBLIC_LINE_CHANNEL_ID;
     const callbackUrl = process.env.NEXT_PUBLIC_LINE_CALLBACK_URL || `${window.location.origin}/auth/callback`;
     const state = Math.random().toString(36).substring(7);
     const nonce = Math.random().toString(36).substring(7);
 
-    // 招待コードがある場合はstateに含める
     const stateData = isNewUser && invitationCode 
       ? JSON.stringify({ state, invitationCode })
       : state;
 
-    // stateをsessionStorageに保存（CSRF対策）
     sessionStorage.setItem('line_auth_state', state);
     if (isNewUser && invitationCode) {
       sessionStorage.setItem('invitation_code', invitationCode);
     }
 
-    // LINE認証エンドポイントにリダイレクト
     const authUrl = new URL('https://access.line.me/oauth2/v2.1/authorize');
     authUrl.searchParams.set('response_type', 'code');
     authUrl.searchParams.set('client_id', lineChannelId || '');
@@ -51,33 +46,21 @@ export default function LoginPage() {
   };
 
   const handleDevLogin = async () => {
-    console.log('[FRONTEND] Dev login button clicked');
     setError('');
     setIsLoading(true);
 
     try {
-      console.log('[FRONTEND] Sending POST to /api/auth/dev-login');
       const response = await fetch('/api/auth/dev-login', {
         method: 'POST',
       });
 
-      console.log('[FRONTEND] Response status:', response.status);
-      console.log('[FRONTEND] Response ok:', response.ok);
-
       if (!response.ok) {
         const data = await response.json();
-        console.error('[FRONTEND] Login failed:', data);
         throw new Error(data.error || 'ログインに失敗しました');
       }
 
-      const data = await response.json();
-      console.log('[FRONTEND] Login successful:', data);
-      console.log('[FRONTEND] Redirecting to /dashboard');
-      
-      // Redirect to dashboard
       window.location.href = '/dashboard';
     } catch (err) {
-      console.error('[FRONTEND] Error during dev login:', err);
       setError(err instanceof Error ? err.message : 'ログインに失敗しました');
       setIsLoading(false);
     }
@@ -86,7 +69,6 @@ export default function LoginPage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // 新規ユーザーの場合、招待コードの検証
     if (isNewUser && !invitationCode.trim()) {
       setError('招待コードを入力してください');
       return;
@@ -96,121 +78,119 @@ export default function LoginPage() {
   };
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center p-6 relative overflow-hidden">
-      {/* Animated background elements */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-20 left-10 w-64 h-64 bg-[#00ff88] opacity-10 rounded-full blur-3xl animate-float"></div>
-        <div className="absolute bottom-20 right-10 w-96 h-96 bg-[#00d4ff] opacity-10 rounded-full blur-3xl animate-float" style={{ animationDelay: '1s' }}></div>
-        <div className="absolute top-1/2 left-1/2 w-80 h-80 bg-[#ff00ff] opacity-5 rounded-full blur-3xl animate-float" style={{ animationDelay: '2s' }}></div>
-      </div>
+    <main className="min-h-screen flex items-center justify-center p-4 relative">
+      {/* Decorative floating accents */}
+      <div className="pointer-events-none absolute -top-8 left-6 w-24 h-24 rounded-xl opacity-30 blur-xl bg-emerald-500/30 animate-float-slow" />
+      <div className="pointer-events-none absolute bottom-10 -right-6 w-28 h-28 rounded-full opacity-25 blur-xl bg-blue-500/25 animate-float-slow" style={{ animationDelay: '1.2s' }} />
+      <div className="pointer-events-none absolute top-1/2 -translate-y-1/2 -left-10 w-16 h-16 rotate-12 opacity-20 blur-lg" style={{ background: 'conic-gradient(from 180deg at 50% 50%, rgba(16,185,129,0.35), rgba(59,130,246,0.28), transparent 70%)' }} />
+      {/* Pixel sparks */}
+      <div className="pixel-spark run" style={{ left: '18%', bottom: '18%', animationDelay: '0s' }} />
+      <div className="pixel-spark blue run" style={{ right: '14%', top: '22%', animationDelay: '.6s' }} />
+      <div className="pixel-spark yellow run" style={{ left: '8%', top: '30%', animationDelay: '1.2s' }} />
 
-      <div className="w-full max-w-md gaming-card rounded-2xl p-8 relative z-10 transition-all duration-300">
-        {/* Scan line effect */}
-        <div className="absolute inset-0 overflow-hidden rounded-2xl pointer-events-none">
-          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#00ff88] to-transparent opacity-5 h-32 animate-scan-line"></div>
-        </div>
-
-        {/* Minecraft-style pixel corners */}
-        <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-[#00ff88]"></div>
-        <div className="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-[#00ff88]"></div>
-        <div className="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-[#00ff88]"></div>
-        <div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-[#00ff88]"></div>
-
-        <div className="relative z-10">
-          <h1 className="text-4xl font-bold text-center mb-2 neon-text text-[#00ff88]">
-            ⛏️ Minecraft Server
-          </h1>
-          <p className="text-xl font-bold text-center mb-2 text-[#00d4ff]">
-            Control Panel
-          </p>
-          <p className="text-gray-400 text-center mb-8 text-sm">
-            サーバーを管理するにはログインしてください
-          </p>
-
-          {error && (
-            <div className="mb-4 p-3 bg-[#ff3366] bg-opacity-20 border border-[#ff3366] text-[#ff3366] rounded-lg backdrop-blur-sm">
-              {error}
-            </div>
-          )}
-
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="flex items-center space-x-3 mb-4 p-3 bg-white bg-opacity-5 rounded-lg border border-white border-opacity-10">
-              <input
-                type="checkbox"
-                id="isNewUser"
-                checked={isNewUser}
-                onChange={(e) => setIsNewUser(e.target.checked)}
-                className="w-5 h-5 accent-[#00ff88] rounded"
-              />
-              <label htmlFor="isNewUser" className="text-sm text-gray-300 flex-1">
-                初めて利用する（招待コードが必要です）
-              </label>
-            </div>
-
-            {isNewUser && (
-              <div className="space-y-2">
-                <label htmlFor="invitationCode" className="block text-sm font-medium text-[#00ff88] mb-2">
-                  🎫 招待コード
-                </label>
-                <input
-                  type="text"
-                  id="invitationCode"
-                  value={invitationCode}
-                  onChange={(e) => setInvitationCode(e.target.value)}
-                  placeholder="招待コードを入力"
-                  className="w-full px-4 py-3 bg-black bg-opacity-40 border border-[#00ff88] border-opacity-30 rounded-lg focus:outline-none focus:border-[#00ff88] focus:border-opacity-100 text-white placeholder-gray-500 transition-all duration-300"
-                  disabled={isLoading}
-                />
-              </div>
-            )}
-
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="gaming-button w-full bg-gradient-to-r from-[#00ff88] to-[#00d4ff] hover:from-[#00d4ff] hover:to-[#00ff88] disabled:from-gray-600 disabled:to-gray-700 text-black disabled:text-gray-400 font-bold py-4 px-6 rounded-lg transition-all duration-300 flex items-center justify-center space-x-3 shadow-lg hover:shadow-[0_0_30px_rgba(0,255,136,0.5)] disabled:shadow-none transform hover:scale-105 active:scale-95"
-            >
-              {isLoading ? (
-                <>
-                  <div className="animate-spin rounded-full h-5 w-5 border-2 border-black border-t-transparent"></div>
-                  <span>処理中...</span>
-                </>
-              ) : (
-                <>
-                  <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63h2.386c.346 0 .627.285.627.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63.346 0 .628.285.628.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.282.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.078 9.436-6.975C23.176 14.393 24 12.458 24 10.314" />
-                  </svg>
-                  <span className="text-lg">LINEでログイン</span>
-                </>
+      {/* Card: 360px width on mobile, centered */}
+      <div className="w-full max-w-[380px] animate-fade-up" style={{ animationDelay: '60ms' }}>
+        <div className="aurora-border">
+          <div className="aurora-inner card card-accent">
+            {/* Padding: 24px (p-6) */}
+            <div className="p-6">
+              {error && (
+                <div className="mb-4 p-3 bg-red-500/10 border border-red-500 rounded text-red-500 text-sm">
+                  {error}
+                </div>
               )}
-            </button>
 
-            {isDevMode && (
-              <button
-                type="button"
-                onClick={handleDevLogin}
-                disabled={isLoading}
-                className="gaming-button w-full bg-gradient-to-r from-[#ff9500] to-[#ff5500] hover:from-[#ff5500] hover:to-[#ff9500] disabled:from-gray-600 disabled:to-gray-700 text-white disabled:text-gray-400 font-bold py-4 px-6 rounded-lg transition-all duration-300 flex items-center justify-center space-x-3 shadow-lg hover:shadow-[0_0_30px_rgba(255,149,0,0.5)] disabled:shadow-none transform hover:scale-105 active:scale-95"
-              >
-                {isLoading ? (
-                  <>
-                    <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></div>
-                    <span>処理中...</span>
-                  </>
-                ) : (
-                  <>
-                    <span className="text-2xl">🔧</span>
-                    <span className="text-lg">開発モードでログイン</span>
-                  </>
+              {/* Title: 20px bold */}
+              <div className="flex items-center gap-2.5 justify-center">
+                <h1 className="text-[20px] font-bold leading-tight text-[#E5E7EB] hdr-game text-center">
+                  Minecraft Server Control
+                </h1>
+              </div>
+              
+              {/* Subtitle: 14px, 32px from title (8px margin) */}
+              <p className="text-[14px] text-[#A7B0BB] mt-2 text-center">
+                LINEで認証してサーバーを操作できます
+              </p>
+
+              <form onSubmit={handleSubmit} className="mt-[28px]">
+                {/* Checkbox: 20x20, 60px from subtitle */}
+                <label className="flex items-start cursor-pointer animate-fade-up" style={{ animationDelay: '120ms' }}>
+                  <div className="relative flex-shrink-0">
+                    <input
+                      type="checkbox"
+                      checked={isNewUser}
+                      onChange={(e) => setIsNewUser(e.target.checked)}
+                      className="w-5 h-5 rounded border-2 border-[#384758] bg-transparent appearance-none checked:bg-[#10B981] checked:border-[#10B981] cursor-pointer transition-transform duration-150"
+                    />
+                    {isNewUser && (
+                      <svg className="absolute top-0.5 left-0.5 w-4 h-4 text-[#0B0F14] pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                      </svg>
+                    )}
+                  </div>
+                  <span className="ml-2 text-[14px] text-[#A7B0BB] leading-5">
+                    初めて利用する（招待コードが必要です）
+                  </span>
+                </label>
+
+                {/* Invitation code input: appears 52px below checkbox */}
+                {isNewUser && (
+                <div className="mt-[37px] animate-fade-up" style={{ animationDelay: '180ms' }}>
+                  {/* Label: 14px semibold */}
+                  <label htmlFor="invitationCode" className="block text-[14px] font-semibold text-[#E5E7EB] mb-3">
+                    招待コード
+                  </label>
+                  {/* Input: 312px width, 44px height */}
+                  <input
+                    type="text"
+                    id="invitationCode"
+                    value={invitationCode}
+                    onChange={(e) => setInvitationCode(e.target.value)}
+                    placeholder="招待コードを入力"
+                    className="w-full h-11 px-3 rounded bg-[#0D131A] border border-[#1C2430] text-[#E5E7EB] text-[14px] placeholder:text-[#A7B0BB] focus:outline-none focus:border-[#10B981] shadow-[0_1px_0_rgba(255,255,255,0.03)_inset] focus:shadow-[0_0_0_3px_rgba(16,185,129,0.15)]"
+                    disabled={isLoading}
+                  />
+                </div>
                 )}
-              </button>
-            )}
-          </form>
 
-          <div className="mt-6 p-4 bg-white bg-opacity-5 rounded-lg border border-white border-opacity-10">
-            <p className="text-xs text-gray-400 text-center leading-relaxed">
-              🔒 このシステムは招待制です<br />
-              初めての方は招待コードを入力してログインしてください
-            </p>
+                {/* LINE login button: 312px width, 48px height, 184px from label (or 60px from checkbox if no code) */}
+              <button
+                  type="submit"
+                  disabled={isLoading}
+                  className="w-full h-12 mt-[60px] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center transition-colors tappable btn-pill btn-focus-ring btn-shine animate-fade-up bg-[#10B981] hover:bg-[#059669]"
+                  style={{ animationDelay: isNewUser ? '240ms' : '180ms' }}
+                >
+                  {isLoading ? (
+                    <div className="flex items-center gap-3">
+                      <div className="hourglass" />
+                      <span className="text-[16px] font-bold text-[#0B0F14]">処理中...</span>
+                    </div>
+                  ) : (
+                  <span className="text-[16px] font-bold text-[#0B0F14]">LINE でログイン</span>
+                  )}
+                </button>
+
+                {/* Dev mode button: 312px width, 44px height, 58px from LINE button */}
+                {isDevMode && (
+                <button
+                    type="button"
+                    onClick={handleDevLogin}
+                    disabled={isLoading}
+                    className="w-full h-11 mt-[10px] bg-[#121924] hover:bg-[#1A2332] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center transition-colors tappable btn-pill animate-fade-up"
+                    style={{ animationDelay: isNewUser ? '300ms' : '220ms' }}
+                  >
+                  <span className="text-[14px] font-semibold text-[#A7B0BB]">
+                    {isLoading ? '処理中...' : '開発モードでログイン'}
+                  </span>
+                </button>
+                )}
+              </form>
+
+              {/* Note: 12px, 78px from dev button (or 136px from LINE button if no dev) */}
+              <p className="mt-[34px] text-[12px] text-[#A7B0BB] animate-fade-up text-center" style={{ animationDelay: isNewUser ? '360ms' : '260ms' }}>
+                このシステムは招待制です
+              </p>
+            </div>
           </div>
         </div>
       </div>

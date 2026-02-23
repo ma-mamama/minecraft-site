@@ -114,18 +114,22 @@ function ServerStatusDisplay({
   const minecraftConfig = minecraftState ? getMinecraftStatusConfig(minecraftState) : null;
 
   return (
-    <div className="card card-accent">
+    <div className="card card-accent card-hover">
       <div className="p-4">
         <div className="flex items-center justify-between mb-6 lg:mb-8">
-          <h2 className="text-base font-bold text-[#E5E7EB]">
-            サーバーステータス
-          </h2>
+          <h2 className="text-base font-bold text-[#E5E7EB] hdr-game">サーバーステータス</h2>
           <button
             onClick={onRefresh}
             disabled={isLoading}
-            className="btn-emerald px-4 h-7 rounded text-sm font-bold"
+            className="icon-btn"
+            aria-label="ステータスを更新"
+            title="更新"
           >
-            {isLoading ? '更新中...' : '更新'}
+            {/* Refresh icon */}
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M21 12a9 9 0 10-3.34 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M21 3v6h-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
           </button>
         </div>
 
@@ -201,9 +205,9 @@ function ServerControlPanel({
   const canStop = state === 'running' && !isOperating && !isDebouncing;
 
   return (
-    <div className="card card-accent">
+    <div className="card card-accent card-hover">
       <div className="p-4">
-        <h2 className="text-base font-bold text-[#E5E7EB] mb-4">
+        <h2 className="text-base font-bold text-[#E5E7EB] mb-4 hdr-game">
           サーバー制御
         </h2>
 
@@ -211,15 +215,21 @@ function ServerControlPanel({
           <button
             onClick={() => handleAction(onStart)}
             disabled={!canStart}
-            className="btn-emerald h-11 lg:h-12 rounded text-sm font-bold disabled:opacity-50 disabled:cursor-not-allowed flex-1"
+            className="btn-emerald btn-pill btn-elevate btn-focus-ring h-12 lg:h-12 text-sm font-bold disabled:opacity-50 disabled:cursor-not-allowed flex-1 tappable flex items-center justify-center gap-2"
           >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M8 5v14l11-7-11-7z" fill="#0B0F14"/>
+            </svg>
             {state === 'pending' ? '起動中...' : 'サーバー起動'}
           </button>
           <button
             onClick={() => handleAction(onStop)}
             disabled={!canStop}
-            className="btn-red h-11 lg:h-12 rounded text-sm font-bold disabled:opacity-50 disabled:cursor-not-allowed flex-1"
+            className="btn-red btn-pill btn-elevate btn-focus-ring h-12 lg:h-12 text-sm font-bold disabled:opacity-50 disabled:cursor-not-allowed flex-1 tappable flex items-center justify-center gap-2"
           >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect x="7" y="7" width="10" height="10" fill="#0B0F14" rx="1"/>
+            </svg>
             {state === 'stopping' ? '停止中...' : 'サーバー停止'}
           </button>
         </div>
@@ -290,7 +300,7 @@ function InvitationCodeGenerator({ toast }: { toast: ReturnType<typeof useToast>
   };
 
   return (
-    <div className="card card-accent">
+    <div className="card card-accent card-hover">
       <div className="p-4">
         <h2 className="text-base font-bold text-[#E5E7EB] mb-3">
           招待コード生成
@@ -302,8 +312,11 @@ function InvitationCodeGenerator({ toast }: { toast: ReturnType<typeof useToast>
         <button
           onClick={handleGenerate}
           disabled={isGenerating}
-          className="btn-emerald h-9 px-4 rounded text-sm font-bold mb-4 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="btn-emerald btn-pill btn-elevate btn-focus-ring h-12 lg:h-10 px-5 text-sm font-bold mb-4 disabled:opacity-50 disabled:cursor-not-allowed tappable-sm flex items-center gap-2"
         >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M5 12h14M12 5v14" stroke="#0B0F14" strokeWidth="2" strokeLinecap="round"/>
+          </svg>
           {isGenerating ? '生成中...' : '招待コードを生成'}
         </button>
 
@@ -318,8 +331,12 @@ function InvitationCodeGenerator({ toast }: { toast: ReturnType<typeof useToast>
               </div>
               <button
                 onClick={handleCopy}
-                className="btn-emerald h-10 px-4 rounded text-sm font-bold whitespace-nowrap"
+                className="btn-emerald btn-pill btn-elevate btn-focus-ring h-12 lg:h-10 px-5 text-sm font-bold whitespace-nowrap tappable-sm flex items-center gap-2"
               >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <rect x="9" y="9" width="10" height="10" rx="2" stroke="#0B0F14" strokeWidth="2"/>
+                  <rect x="5" y="5" width="10" height="10" rx="2" fill="#0B0F14" opacity=".25"/>
+                </svg>
                 {isCopied ? 'コピー済み' : 'コピー'}
               </button>
             </div>
@@ -499,7 +516,7 @@ export default function DashboardPage() {
     return (
       <main className="flex min-h-screen items-center justify-center">
         <div className="flex flex-col items-center space-y-4">
-          <div className="animate-spin rounded-full h-12 w-12 border-[3px] border-[#1C2430] border-t-[#10B981]"></div>
+          <div className="hourglass hourglass-lg" />
           <p className="text-gray-400">読み込み中...</p>
         </div>
       </main>
@@ -511,10 +528,10 @@ export default function DashboardPage() {
       <ToastContainer toasts={toast.toasts} onClose={toast.removeToast} />
       
       {/* Header */}
-      <header className="card border-b-2 border-b-[#065F46]">
+      <header className="card border-b-2 border-b-[#065F46] card-hover">
         <div className="px-4 lg:px-6 h-20 lg:h-[86px] flex items-center justify-between">
           <div>
-            <h1 className="text-base lg:text-xl font-bold text-[#E5E7EB]">
+            <h1 className="text-base lg:text-xl font-bold text-[#E5E7EB] hdr-game">
               Minecraft Server Control
             </h1>
             <p className="text-sm text-[#A7B0BB] mt-1 lg:hidden">
