@@ -115,29 +115,29 @@ function ServerStatusDisplay({
 
   return (
     <div className="card card-accent">
-      <div className="p-4 sm:p-6">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-base sm:text-lg font-bold text-gray-200">
+      <div className="p-4">
+        <div className="flex items-center justify-between mb-6 lg:mb-8">
+          <h2 className="text-base font-bold text-[#E5E7EB]">
             サーバーステータス
           </h2>
           <button
             onClick={onRefresh}
             disabled={isLoading}
-            className="btn-emerald px-4 h-7 rounded text-sm"
+            className="btn-emerald px-4 h-7 rounded text-sm font-bold"
           >
             {isLoading ? '更新中...' : '更新'}
           </button>
         </div>
 
-        <div className="space-y-4">
+        <div className="space-y-4 lg:space-y-[28px]">
           {/* EC2 Status */}
-          <div className="flex items-start space-x-3">
+          <div className="flex items-start space-x-2">
             <div className={`status-dot ${ec2Config.dotClass} mt-1.5 ${ec2Config.animate ? 'animate-pulse-dot' : ''}`}></div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-gray-200">
+              <p className="text-sm font-semibold text-[#E5E7EB]">
                 {ec2Config.label}
               </p>
-              <p className="text-xs text-gray-400 mt-1">
+              <p className="text-[13px] text-[#A7B0BB] mt-1.5">
                 {ec2Config.desc}
               </p>
             </div>
@@ -145,13 +145,13 @@ function ServerStatusDisplay({
 
           {/* Minecraft Status */}
           {minecraftConfig && (
-            <div className="flex items-start space-x-3">
+            <div className="flex items-start space-x-2">
               <div className={`status-dot ${minecraftConfig.dotClass} mt-1.5 ${minecraftConfig.animate ? 'animate-pulse-dot' : ''}`}></div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-gray-200">
+                <p className="text-sm font-semibold text-[#E5E7EB]">
                   {minecraftConfig.label}
                 </p>
-                <p className="text-xs text-gray-400 mt-1">
+                <p className="text-[13px] text-[#A7B0BB] mt-1.5">
                   {minecraftConfig.desc}
                 </p>
               </div>
@@ -202,23 +202,23 @@ function ServerControlPanel({
 
   return (
     <div className="card card-accent">
-      <div className="p-4 sm:p-6">
-        <h2 className="text-base sm:text-lg font-bold text-gray-200 mb-6">
+      <div className="p-4">
+        <h2 className="text-base font-bold text-[#E5E7EB] mb-4">
           サーバー制御
         </h2>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+        <div className="flex flex-col lg:flex-row gap-3 lg:gap-4">
           <button
             onClick={() => handleAction(onStart)}
             disabled={!canStart}
-            className="btn-emerald h-11 sm:h-12 rounded text-sm font-bold disabled:opacity-50 disabled:cursor-not-allowed"
+            className="btn-emerald h-11 lg:h-12 rounded text-sm font-bold disabled:opacity-50 disabled:cursor-not-allowed flex-1"
           >
             {state === 'pending' ? '起動中...' : 'サーバー起動'}
           </button>
           <button
             onClick={() => handleAction(onStop)}
             disabled={!canStop}
-            className="btn-red h-11 sm:h-12 rounded text-sm font-bold disabled:opacity-50 disabled:cursor-not-allowed"
+            className="btn-red h-11 lg:h-12 rounded text-sm font-bold disabled:opacity-50 disabled:cursor-not-allowed flex-1"
           >
             {state === 'stopping' ? '停止中...' : 'サーバー停止'}
           </button>
@@ -291,39 +291,39 @@ function InvitationCodeGenerator({ toast }: { toast: ReturnType<typeof useToast>
 
   return (
     <div className="card card-accent">
-      <div className="p-4 sm:p-6">
-        <h2 className="text-base sm:text-lg font-bold text-gray-200 mb-3">
+      <div className="p-4">
+        <h2 className="text-base font-bold text-[#E5E7EB] mb-3">
           招待コード生成
         </h2>
-        <p className="text-xs sm:text-sm text-gray-400 mb-4">
+        <p className="text-[13px] text-[#A7B0BB] mb-4">
           新しいユーザーを招待するためのコードを生成できます。コードは5時間有効です。
         </p>
 
         <button
           onClick={handleGenerate}
           disabled={isGenerating}
-          className="btn-emerald h-9 px-4 rounded text-sm mb-4 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="btn-emerald h-9 px-4 rounded text-sm font-bold mb-4 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isGenerating ? '生成中...' : '招待コードを生成'}
         </button>
 
         {generatedCode && expiresAt && (
           <div className="space-y-3">
-            <p className="text-sm font-semibold text-gray-200">
+            <p className="text-sm font-semibold text-[#E5E7EB]">
               生成された招待コード
             </p>
-            <div className="flex items-center space-x-2">
-              <div className="input flex-1 px-3 py-2.5 rounded font-mono text-sm">
+            <div className="flex items-center gap-2">
+              <div className="input flex-1 px-3 py-2.5 rounded font-mono text-base">
                 {generatedCode}
               </div>
               <button
                 onClick={handleCopy}
-                className="btn-emerald h-10 px-4 rounded text-sm whitespace-nowrap"
+                className="btn-emerald h-10 px-4 rounded text-sm font-bold whitespace-nowrap"
               >
                 {isCopied ? 'コピー済み' : 'コピー'}
               </button>
             </div>
-            <p className="text-xs text-gray-400">
+            <p className="text-xs text-[#A7B0BB]">
               有効期限: {formatExpiresAt(expiresAt)} （生成から5時間有効）
             </p>
           </div>
@@ -511,30 +511,27 @@ export default function DashboardPage() {
       <ToastContainer toasts={toast.toasts} onClose={toast.removeToast} />
       
       {/* Header */}
-      <header className="card border-b-2 border-b-[var(--accent)]">
-        <div className="px-4 sm:px-6 h-20 sm:h-[86px] flex items-center justify-between">
+      <header className="card border-b-2 border-b-[#065F46]">
+        <div className="px-4 lg:px-6 h-20 lg:h-[86px] flex items-center justify-between">
           <div>
-            <h1 className="text-lg sm:text-xl font-bold text-gray-200">
+            <h1 className="text-base lg:text-xl font-bold text-[#E5E7EB]">
               Minecraft Server Control
             </h1>
-            <p className="text-sm text-gray-400 mt-1 hidden sm:block">
+            <p className="text-sm text-[#A7B0BB] mt-1 lg:hidden">
               ようこそ、{user?.displayName || 'ユーザー'}さん
             </p>
           </div>
-          <button
-            onClick={handleLogout}
-            className="btn-secondary h-9 px-4 rounded text-sm"
-          >
-            ログアウト
-          </button>
+          <p className="text-sm text-[#A7B0BB] hidden lg:block">
+            ようこそ、{user?.displayName || 'ユーザー'}さん
+          </p>
         </div>
       </header>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+      <main className="px-4 lg:px-[180px] pt-7 lg:pt-[34px]">
+        <div className="grid grid-cols-1 lg:grid-cols-[720px_336px] gap-4 lg:gap-6">
           {/* Left Column */}
-          <div className="lg:col-span-2 space-y-4 sm:space-y-6">
+          <div className="space-y-4 lg:space-y-[24px]">
             <ServerStatusDisplay
               ec2State={serverState}
               minecraftState={minecraftState}
@@ -550,7 +547,7 @@ export default function DashboardPage() {
           </div>
 
           {/* Right Column */}
-          <div className="lg:col-span-1">
+          <div>
             <InvitationCodeGenerator toast={toast} />
           </div>
         </div>
