@@ -25,10 +25,10 @@ export function Toast({ toast, onClose }: ToastProps) {
   }, [toast.id, toast.duration, onClose]);
 
   const bgColor = {
-    success: 'bg-green-500',
-    error: 'bg-red-500',
-    info: 'bg-blue-500',
-    warning: 'bg-yellow-500',
+    success: 'from-emerald-400 to-emerald-500',
+    error: 'from-red-400 to-red-500',
+    info: 'from-blue-400 to-blue-500',
+    warning: 'from-yellow-400 to-yellow-500',
   }[toast.type];
 
   const icon = {
@@ -40,14 +40,14 @@ export function Toast({ toast, onClose }: ToastProps) {
 
   return (
     <div
-      className={`${bgColor} text-white px-6 py-4 rounded-lg shadow-lg flex items-center gap-3 min-w-[300px] max-w-[500px] animate-slide-in`}
+      className={`bg-gradient-to-br ${bgColor} text-white px-5 py-3.5 rounded-xl shadow-xl flex items-center gap-3 min-w-[280px] max-w-[520px] animate-slide-in backdrop-blur-md`}
       role="alert"
     >
-      <span className="text-xl font-bold">{icon}</span>
-      <p className="flex-1">{toast.message}</p>
+      <span className="text-lg font-bold drop-shadow-sm">{icon}</span>
+      <p className="flex-1 leading-relaxed">{toast.message}</p>
       <button
         onClick={() => onClose(toast.id)}
-        className="text-white hover:text-gray-200 font-bold text-xl"
+        className="text-white/90 hover:text-white font-bold text-lg px-1"
         aria-label="閉じる"
       >
         ×
